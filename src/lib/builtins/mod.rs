@@ -30,6 +30,7 @@ use self::{
 use std::{
     error::Error,
     io::{self, Write},
+    os::unix::io::RawFd,
 };
 
 use crate::{
@@ -568,18 +569,7 @@ fn builtin_isatty(args: &[small::String], _: &mut Shell) -> i32 {
 
     if args.len() > 1 {
         // sys::isatty expects a usize if compiled for redox but otherwise a i32.
-        #[cfg(target_os = "redox")]
-        match args[1].parse::<usize>() {
-            Ok(r) => {
-                if sys::isatty(r) {
-                    return SUCCESS;
-                }
-            }
-            Err(_) => eprintln!("ion: isatty given bad number"),
-        }
-
-        #[cfg(not(target_os = "redox"))]
-        match args[1].parse::<i32>() {
+        match args[1].parse::<RawFd>() {
             Ok(r) => {
                 if sys::isatty(r) {
                     return SUCCESS;

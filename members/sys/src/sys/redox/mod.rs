@@ -89,7 +89,7 @@ pub fn killpg(pgid: u32, signal: i32) -> io::Result<()> {
 pub fn pipe2(flags: usize) -> io::Result<(RawFd, RawFd)> {
     let mut fds = [0; 2];
     cvt(syscall::pipe2(&mut fds, flags))?;
-    Ok((fds[0], fds[1]))
+    Ok((fds[0] as RawFd, fds[1] as RawFd))
 }
 
 pub fn setpgid(pid: u32, pgid: u32) -> io::Result<()> {
@@ -284,7 +284,7 @@ pub fn execve<S: AsRef<str>>(prog: &str, args: &[S], clear_env: bool) -> io::Err
         }
 
         // Finally: Run the program!
-        let error = syscall::fexec(file.as_raw_fd(), &cvt_args, &env_args);
+        let error = syscall::fexec(file.as_raw_fd() as usize, &cvt_args, &env_args);
         io::Error::from_raw_os_error(error.err().unwrap().errno)
     } else {
         // The binary was not found.
@@ -312,7 +312,7 @@ pub fn reset_signal(signal: i32) -> io::Result<()> {
 }
 
 pub fn tcsetpgrp(tty_fd: RawFd, pgid: u32) -> io::Result<()> {
-    let fd = cvt(syscall::dup(tty_fd, b"pgrp"))?;
+    let fd = cvt(syscall::dup(tty_fd as usize, b"pgrp"))?;
 
     let pgid_usize = pgid as usize;
     let res = syscall::write(fd, unsafe {
@@ -324,14 +324,14 @@ pub fn tcsetpgrp(tty_fd: RawFd, pgid: u32) -> io::Result<()> {
     cvt(res).and(Ok(()))
 }
 
-pub fn dup(fd: RawFd) -> io::Result<RawFd> { cvt(syscall::dup(fd, &[])) }
+pub fn dup(fd: RawFd) -> io::Result<RawFd> { cvt(syscall::dup(fd as usize, &[])).map(|fd| fd as RawFd) }
 
-pub fn dup2(old: RawFd, new: RawFd) -> io::Result<RawFd> { cvt(syscall::dup2(old, new, &[])) }
+pub fn dup2(old: RawFd, new: RawFd) -> io::Result<RawFd> { cvt(syscall::dup2(old as usize, new as usize, &[])).map(|fd| fd as RawFd) }
 
-pub fn close(fd: RawFd) -> io::Result<()> { cvt(syscall::close(fd)).and(Ok(())) }
+pub fn close(fd: RawFd) -> io::Result<()> { cvt(syscall::close(fd as usize)).and(Ok(())) }
 
 pub fn isatty(fd: RawFd) -> bool {
-    if let Ok(tfd) = syscall::dup(fd, b"termios") {
+    if let Ok(tfd) = syscall::dup(fd as usize, b"termios") {
         let _ = syscall::close(tfd);
         true
     } else {

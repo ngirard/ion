@@ -82,3 +82,5 @@ panic = "abort"
 termion = { git = "https://gitlab.redox-os.org/redox-os/termion" }
 liner = { git = "https://gitlab.redox-os.org/redox-os/liner" }
 redox_syscall = { git = "https://gitlab.redox-os.org/redox-os/syscall.git" }
+atty = { git = "https://gitlab.redox-os.org/redox-os/atty.git", branch = "redox-unix" }
+libc = { git = "https://gitlab.redox-os.org/redox-os/liblibc.git", branch = "redox-unix" }
