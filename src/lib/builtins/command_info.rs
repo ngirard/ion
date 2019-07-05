@@ -1,7 +1,7 @@
 use super::Status;
 use crate as ion_shell;
 use crate::{
-    shell::{Shell, Value},
+    shell::{Shell, ValueRef},
     types,
 };
 use builtins_proc::builtin;
@@ -29,8 +29,8 @@ pub fn which(args: &[types::Str], shell: &mut Shell<'_>) -> Status {
         match get_command_info(command, shell) {
             Ok(c_type) => match c_type.as_ref() {
                 "alias" => {
-                    if let Some(Value::Alias(ref alias)) = shell.variables().get(&**command) {
-                        println!("{}: alias to {}", command, &**alias);
+                    if let Some(ValueRef::Alias(alias)) = shell.variables().get(&**command) {
+                        println!("{}: alias to {}", command, alias.0);
                     }
                 }
                 "function" => println!("{}: function", command),
@@ -45,8 +45,8 @@ pub fn which(args: &[types::Str], shell: &mut Shell<'_>) -> Status {
 
 fn get_command_info<'a>(command: &str, shell: &mut Shell<'_>) -> Result<Cow<'a, str>, ()> {
     match shell.variables().get(command) {
-        Some(Value::Alias(_)) => Ok("alias".into()),
-        Some(Value::Function(_)) => Ok("function".into()),
+        Some(ValueRef::Alias(_)) => Ok("alias".into()),
+        Some(ValueRef::Function(_)) => Ok("function".into()),
         _ if shell.builtins().contains(command) => Ok("builtin".into()),
         _ => {
             let paths = env::var_os("PATH").unwrap_or_else(|| "/bin".into());

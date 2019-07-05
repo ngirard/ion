@@ -1,7 +1,10 @@
 use super::Status;
 use crate as ion_shell;
 use crate::{
-    shell::{variables::Value, Shell},
+    shell::{
+        variables::{Value, ValueRef},
+        Shell,
+    },
     types,
 };
 use builtins_proc::builtin;
@@ -71,7 +74,7 @@ pub fn set(args: &[types::Str], shell: &mut Shell<'_>) -> Status {
     match positionals {
         None => (),
         Some(kind) => {
-            if let Some(Value::Array(array)) = shell.variables().get("args") {
+            if let Some(ValueRef::Array(array)) = shell.variables().get("args") {
                 let command = array[0].clone();
                 // This used to take a `&[String]` but cloned them all, so although
                 // this is non-ideal and could probably be better done with `Rc`, it

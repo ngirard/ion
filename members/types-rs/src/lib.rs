@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate shrinkwraprs;
+
 mod math;
 mod modification;
 pub mod types;
@@ -9,18 +12,76 @@ pub use self::{
 use itertools::Itertools;
 use std::fmt;
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum Value<T> {
-    Str(types::Str),
-    Alias(types::Alias),
-    Array(types::Array<T>),
-    HashMap(types::HashMap<T>),
-    BTreeMap(types::BTreeMap<T>),
-    Function(T),
-    None,
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ValueKind {
+    Alias,
+    Array,
+    BTreeMap,
+    Function,
+    HashMap,
+    Str,
 }
 
-impl<T: Eq> Eq for Value<T> {}
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Value<T> {
+    Alias(types::Alias),
+    Array(types::Array<T>),
+    BTreeMap(types::BTreeMap<T>),
+    Function(T),
+    HashMap(types::HashMap<T>),
+    None,
+    Str(types::Str),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ValueRef<'a, T> {
+    Alias(types::AliasRef<'a>),
+    Array(&'a types::ArrayRef<T>),
+    BTreeMap(&'a types::BTreeMap<T>),
+    Function(&'a T),
+    HashMap(&'a types::HashMap<T>),
+    None,
+    Str(&'a types::StrRef),
+}
+
+impl<'a, T: Clone> ValueRef<'a, T> {
+    pub fn to_owned(self) -> Value<T> {
+        match self {
+            ValueRef::Alias(value) => Value::Alias(types::Alias((*value).into())),
+            ValueRef::Array(value) => Value::Array(value.to_owned()),
+            ValueRef::BTreeMap(value) => Value::BTreeMap(value.clone()),
+            ValueRef::Function(value) => Value::Function(value.clone()),
+            ValueRef::HashMap(value) => Value::HashMap(value.to_owned()),
+            ValueRef::Str(value) => Value::Str(value.into()),
+            ValueRef::None => Value::None,
+        }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub enum ValueRefMut<'a, T> {
+    Alias(types::AliasRefMut<'a>),
+    Array(&'a mut types::ArrayRef<T>),
+    BTreeMap(&'a mut types::BTreeMap<T>),
+    Function(&'a mut T),
+    HashMap(&'a mut types::HashMap<T>),
+    None,
+    Str(&'a mut types::StrRef),
+}
+
+impl<'a, T: Clone> ValueRefMut<'a, T> {
+    pub fn to_owned(self) -> Value<T> {
+        match self {
+            ValueRefMut::Alias(value) => Value::Alias(types::Alias((&*value.0).into())),
+            ValueRefMut::Array(value) => Value::Array(value.to_owned()),
+            ValueRefMut::BTreeMap(value) => Value::BTreeMap(value.clone()),
+            ValueRefMut::Function(value) => Value::Function(value.clone()),
+            ValueRefMut::HashMap(value) => Value::HashMap(value.to_owned()),
+            ValueRefMut::Str(value) => Value::Str((&*value).into()),
+            ValueRefMut::None => Value::None,
+        }
+    }
+}
 
 // this one’s only special because of the lifetime parameter
 impl<'a, T> From<&'a str> for Value<T> {

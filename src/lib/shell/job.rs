@@ -2,7 +2,7 @@ use super::{IonError, Shell};
 use crate::{
     builtins::{self, BuiltinFunction},
     expansion::{self, pipelines::RedirectFrom, Expander},
-    types, Value,
+    types,
 };
 use std::{fmt, fs::File, iter, path::Path, str};
 
@@ -42,7 +42,7 @@ impl<'a> Job<'a> {
                 iter::once("cd".into()).chain(args).collect(),
                 self.redirection,
             )
-        } else if let Some(Value::Function(_)) = shell.variables.get(&self.args[0]) {
+        } else if shell.variables.is_func(&self.args[0]) {
             RefinedJob::function(self.args.clone(), self.redirection)
         } else if let Some(builtin) = self.builtin {
             RefinedJob::builtin(builtin, args, self.redirection)

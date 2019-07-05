@@ -35,7 +35,7 @@ pub use self::{
 };
 use crate as ion_shell;
 use crate::{
-    shell::{Shell, Value},
+    shell::{Shell, Value, ValueRef},
     types,
 };
 use builtins_proc::builtin;
@@ -281,34 +281,37 @@ DESCRIPTION
 "
 )]
 pub fn cd(args: &[types::Str], shell: &mut Shell<'_>) -> Status {
+    let dir_stack = &mut shell.directory_stack;
+    let variables = &mut shell.variables;
     let err = match args.get(1) {
         Some(dir) => {
             let dir = dir.as_ref();
-            if let Some(Value::Array(cdpath)) = shell.variables().get("CDPATH").cloned() {
+            if let Some(ValueRef::Array(cdpath)) = variables.get("CDPATH") {
                 if dir == "-" {
-                    shell.dir_stack_mut().switch_to_previous_directory()
+                    dir_stack.switch_to_previous_directory()
                 } else {
+
                     let check_cdpath_first = cdpath
                         .iter()
                         .map(|path| {
                             let path_dir = format!("{}/{}", path, dir);
-                            shell.dir_stack_mut().change_and_push_dir(&path_dir)
+                            dir_stack.change_and_push_dir(&path_dir)
                         })
                         .find(Result::is_ok)
-                        .unwrap_or_else(|| shell.dir_stack_mut().change_and_push_dir(dir));
-                    shell.dir_stack_mut().popd(1);
+                        .unwrap_or_else(|| dir_stack.change_and_push_dir(dir));
+                    dir_stack.popd(1);
                     check_cdpath_first
                 }
             } else {
-                shell.dir_stack_mut().change_and_push_dir(dir)
+                dir_stack.change_and_push_dir(dir)
             }
         }
-        None => shell.dir_stack_mut().switch_to_home_directory(),
+        None => dir_stack.switch_to_home_directory(),
     };
 
     match err {
         Ok(()) => {
-            if let Some(Value::Function(function)) = shell.variables().get("CD_CHANGE").cloned() {
+            if let Some(function) = shell.variables().get_func("CD_CHANGE").cloned() {
                 let _ = shell.execute_function(&function, &["ion"]);
             }
             Status::SUCCESS
