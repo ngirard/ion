@@ -290,7 +290,6 @@ pub fn cd(args: &[types::Str], shell: &mut Shell<'_>) -> Status {
                 if dir == "-" {
                     dir_stack.switch_to_previous_directory()
                 } else {
-
                     let check_cdpath_first = cdpath
                         .iter()
                         .map(|path| {

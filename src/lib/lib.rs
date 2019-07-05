@@ -56,7 +56,7 @@
 //!     for _ in 0..255 {
 //!         i += 1;
 //!         // call a user-defined callback function named on_update
-//!         if let Some(Value::Function(function)) = {
+//!         if let Some(function) = {
 //!             shell.variables().get_func("on_update").cloned()
 //!         } {
 //!             if let Err(why) = shell.execute_function(&function, &["ion", &i.to_string()]) {

@@ -88,7 +88,7 @@ atty = "0.2"
 permutate = "0.3"
 dirs = "1.0"
 nix = "0.14"
-froggy = "0.4.4"
+slab = "0.4.2"
 
 [target."cfg(all(unix, not(target_os = \"redox\")))".dependencies]
 users = "0.9"

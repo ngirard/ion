@@ -183,8 +183,8 @@ fn main() {
 
         if let Some([x, y]) = e.mouse_cursor_args() {
             if let Some(function) = shell.variables().get_func("on_mouse").cloned() {
-                if let Err(why) = shell
-                    .execute_function(&function, &["ion", &x.to_string(), &y.to_string()])
+                if let Err(why) =
+                    shell.execute_function(&function, &["ion", &x.to_string(), &y.to_string()])
                 {
                     eprintln!("window example: error in on_mouse callback: {}", why);
                 }

@@ -1,10 +1,7 @@
 use super::Value;
 use hashbrown::HashMap as HashbrownMap;
 use small;
-use std::{
-    collections::BTreeMap as StdBTreeMap,
-    iter::FromIterator,
-};
+use std::{collections::BTreeMap as StdBTreeMap, iter::FromIterator};
 
 pub type Array<T> = Vec<Value<T>>;
 pub type ArrayRef<T> = [Value<T>];

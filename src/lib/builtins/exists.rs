@@ -192,8 +192,7 @@ mod tests {
     use crate::{
         flow_control::Function,
         parser::lexers::assignments::{KeyBuf, Primitive},
-        shell::flow_control::Statement,
-        shell::variables::Value,
+        shell::{flow_control::Statement, variables::Value},
         types,
     };
     use std::rc::Rc;
