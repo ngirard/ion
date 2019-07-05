@@ -4,33 +4,30 @@ use small;
 use std::{
     collections::BTreeMap as StdBTreeMap,
     iter::FromIterator,
-    ops::{Deref, DerefMut},
 };
 
 pub type Array<T> = Vec<Value<T>>;
+pub type ArrayRef<T> = [Value<T>];
 pub type HashMap<T> = HashbrownMap<Str, Value<T>>;
 pub type BTreeMap<T> = StdBTreeMap<Str, Value<T>>;
 pub type Str = small::String;
+pub type StrRef = str;
 
-#[derive(Clone, Debug, PartialEq, Hash, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Hash, Eq, Default, Shrinkwrap)]
 pub struct Alias(pub Str);
 
-impl Alias {
-    pub fn empty() -> Self { Alias(Str::with_capacity(1)) }
+#[derive(Clone, Debug, PartialEq, Hash, Eq, Default, Shrinkwrap)]
+pub struct AliasRef<'a>(pub &'a StrRef);
+
+#[derive(Debug, PartialEq, Hash, Eq, Default, Shrinkwrap)]
+pub struct AliasRefMut<'a>(pub &'a mut StrRef);
+
+impl<'a> From<&'a mut Alias> for AliasRefMut<'a> {
+    fn from(alias: &'a mut Alias) -> Self { AliasRefMut(alias.0.as_mut_str()) }
 }
 
-impl Deref for Alias {
-    type Target = Str;
-
-    fn deref(&self) -> &Self::Target { &self.0 }
-}
-
-impl DerefMut for Alias {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
-}
-
-impl Into<Str> for Alias {
-    fn into(self) -> Str { self.0 }
+impl<'a> From<&'a Alias> for AliasRef<'a> {
+    fn from(alias: &'a Alias) -> Self { AliasRef(&**alias) }
 }
 
 impl<T> FromIterator<Value<T>> for Value<T> {

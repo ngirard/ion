@@ -10,7 +10,7 @@ use crate::{
         Expander, ForValueExpression,
     },
     parser::{parse_and_validate, StatementSplitter, Terminator},
-    shell::{IonError, Job, Value},
+    shell::{IonError, Job, Value, ValueRef},
     types,
 };
 use err_derive::Error;
@@ -490,8 +490,8 @@ impl<'a> Shell<'a> {
                 // let pattern_is_array = is_array(&value);
                 let previous_bind = case.binding.as_ref().and_then(|bind| {
                     if is_array {
-                        let out = if let Some(Value::Array(array)) = self.variables.get(bind) {
-                            Some(Value::Array(array.clone()))
+                        let out = if let Some(ValueRef::Array(array)) = self.variables.get(bind) {
+                            Some(Value::Array(array.to_owned()))
                         } else {
                             None
                         };
@@ -499,8 +499,8 @@ impl<'a> Shell<'a> {
                             .set(bind, value.iter().cloned().map(Value::Str).collect::<Value<_>>());
                         out
                     } else {
-                        let out = if let Some(Value::Str(val)) = self.variables.get(bind) {
-                            Some(Value::Str(val.clone()))
+                        let out = if let Some(ValueRef::Str(val)) = self.variables.get(bind) {
+                            Some(Value::Str(val.into()))
                         } else {
                             None
                         };
@@ -565,8 +565,8 @@ fn expand_pipeline<'a>(
     let mut statements = Vec::new();
 
     while let Some(item) = item_iter.next() {
-        if let Some(Value::Alias(alias)) = shell.variables.get(&item.job.args[0]) {
-            statements = StatementSplitter::new(alias.0.as_str())
+        if let Some(ValueRef::Alias(alias)) = shell.variables.get(&item.job.args[0]) {
+            statements = StatementSplitter::new(alias.0)
                 .map(|stmt| parse_and_validate(stmt?, &shell.builtins).map_err(Into::into))
                 .collect::<std::result::Result<_, IonError>>()?;
 

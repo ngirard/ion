@@ -1,4 +1,9 @@
-use super::{fork::Capture, sys::variables, variables::Value, IonError, PipelineError, Shell};
+use super::{
+    fork::Capture,
+    sys::variables,
+    variables::{Value, ValueRef},
+    IonError, PipelineError, Shell,
+};
 use crate::{
     expansion::{Error, Expander, Result, Select},
     types,
@@ -41,7 +46,7 @@ impl<'a, 'b> Expander for Shell<'b> {
         selection: &Select<types::Str>,
     ) -> Result<types::Args, Self::Error> {
         match self.variables.get(name) {
-            Some(Value::Array(array)) => match selection {
+            Some(ValueRef::Array(array)) => match selection {
                 Select::All => {
                     Ok(types::Args::from_iter(array.iter().map(|x| format!("{}", x).into())))
                 }
@@ -69,7 +74,7 @@ impl<'a, 'b> Expander for Shell<'b> {
                     .ok_or(Error::OutOfBound),
                 Select::Key(_) => Err(Error::InvalidIndex(selection.clone(), "array", name.into())),
             },
-            Some(Value::HashMap(hmap)) => match selection {
+            Some(ValueRef::HashMap(hmap)) => match selection {
                 Select::All => {
                     let mut array = types::Args::new();
                     for (key, value) in hmap.iter() {
@@ -108,7 +113,7 @@ impl<'a, 'b> Expander for Shell<'b> {
                     Err(Error::InvalidIndex(selection.clone(), "hashmap", name.into()))
                 }
             },
-            Some(Value::BTreeMap(bmap)) => match selection {
+            Some(ValueRef::BTreeMap(bmap)) => match selection {
                 Select::All => {
                     let mut array = types::Args::new();
                     for (key, value) in bmap.iter() {
@@ -154,11 +159,11 @@ impl<'a, 'b> Expander for Shell<'b> {
 
     fn map_keys(&self, name: &str, sel: &Select<types::Str>) -> Result<types::Args, Self::Error> {
         match self.variables.get(name) {
-            Some(&Value::HashMap(ref map)) => {
+            Some(ValueRef::HashMap(ref map)) => {
                 Self::select(map.keys().map(|x| format!("{}", x).into()), sel, map.len())
                     .ok_or_else(|| Error::InvalidIndex(sel.clone(), "map-like", name.into()))
             }
-            Some(&Value::BTreeMap(ref map)) => {
+            Some(ValueRef::BTreeMap(ref map)) => {
                 Self::select(map.keys().map(|x| format!("{}", x).into()), sel, map.len())
                     .ok_or_else(|| Error::InvalidIndex(sel.clone(), "map-like", name.into()))
             }
@@ -169,11 +174,11 @@ impl<'a, 'b> Expander for Shell<'b> {
 
     fn map_values(&self, name: &str, sel: &Select<types::Str>) -> Result<types::Args, Self::Error> {
         match self.variables.get(name) {
-            Some(&Value::HashMap(ref map)) => {
+            Some(ValueRef::HashMap(ref map)) => {
                 Self::select(map.values().map(|x| format!("{}", x).into()), sel, map.len())
                     .ok_or_else(|| Error::InvalidIndex(sel.clone(), "map-like", name.into()))
             }
-            Some(&Value::BTreeMap(ref map)) => {
+            Some(ValueRef::BTreeMap(ref map)) => {
                 Self::select(map.values().map(|x| format!("{}", x).into()), sel, map.len())
                     .ok_or_else(|| Error::InvalidIndex(sel.clone(), "map-like", name.into()))
             }

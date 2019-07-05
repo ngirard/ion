@@ -3,7 +3,7 @@ use std::{fs, os::unix::fs::PermissionsExt};
 use super::Status;
 use crate as ion_shell;
 use crate::{
-    shell::{Shell, Value},
+    shell::{Shell, ValueRef},
     types,
 };
 use builtins_proc::builtin;
@@ -168,7 +168,7 @@ fn file_has_execute_permission(filepath: &str) -> bool {
 /// Returns true if the variable is an array and the array is not empty
 fn array_var_is_not_empty(arrayvar: &str, shell: &Shell<'_>) -> bool {
     match shell.variables().get(arrayvar) {
-        Some(Value::Array(array)) => !array.is_empty(),
+        Some(ValueRef::Array(array)) => !array.is_empty(),
         _ => false,
     }
 }
@@ -183,12 +183,9 @@ fn string_var_is_not_empty(stringvar: &str, shell: &Shell<'_>) -> bool {
 
 /// Returns true if a function with the given name is defined
 fn function_is_defined(function: &str, shell: &Shell<'_>) -> bool {
-    if let Some(Value::Function(_)) = shell.variables().get(function) {
-        true
-    } else {
-        false
-    }
+    shell.variables().is_func(function)
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -196,6 +193,7 @@ mod tests {
         flow_control::Function,
         parser::lexers::assignments::{KeyBuf, Primitive},
         shell::flow_control::Statement,
+        shell::variables::Value,
         types,
     };
     use std::rc::Rc;

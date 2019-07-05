@@ -16,3 +16,4 @@ hashbrown = "0.5"
 small = { git = "https://gitlab.redox-os.org/redox-os/small", features = ["std"] }
 smallvec = "0.6"
 itertools = "0.8"
+shrinkwraprs = "0.2.1"

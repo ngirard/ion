@@ -11,7 +11,7 @@ use ion_shell::{
     builtins::{man_pages, BuiltinFunction, Status},
     expansion::Expander,
     parser::Terminator,
-    types, IonError, PipelineError, Shell, Signal, Value,
+    types, IonError, PipelineError, Shell, Signal,
 };
 use itertools::Itertools;
 use liner::{Buffer, Context, KeyBindings};
@@ -247,8 +247,8 @@ impl<'a> InteractiveShell<'a> {
                             Err(IonError::PipelineExecutionError(
                                 PipelineError::CommandNotFound(command),
                             )) => {
-                                if let Some(Value::Function(func)) =
-                                    shell.variables().get("COMMAND_NOT_FOUND").cloned()
+                                if let Some(func) =
+                                    shell.variables().get_func("COMMAND_NOT_FOUND").cloned()
                                 {
                                     if let Err(why) =
                                         shell.execute_function(&func, &["ion", &command])

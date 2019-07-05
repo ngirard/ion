@@ -1,5 +1,5 @@
 use super::InteractiveShell;
-use ion_shell::{builtins::Status, Value};
+use ion_shell::{builtins::Status, ValueRef};
 
 use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -26,7 +26,8 @@ impl<'a> InteractiveShell<'a> {
     /// Updates the history ignore patterns. Call this whenever HISTORY_IGNORE
     /// is changed.
     pub fn ignore_patterns(&self) -> IgnoreSetting {
-        if let Some(Value::Array(patterns)) = self.shell.borrow().variables().get("HISTORY_IGNORE")
+        if let Some(ValueRef::Array(patterns)) =
+            self.shell.borrow().variables().get("HISTORY_IGNORE")
         {
             let mut settings = IgnoreSetting::default();
             // for convenience and to avoid typos

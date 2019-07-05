@@ -56,8 +56,10 @@
 //!     for _ in 0..255 {
 //!         i += 1;
 //!         // call a user-defined callback function named on_update
-//!         if let Some(Value::Function(function)) = shell.variables().get("on_update") {
-//!             if let Err(why) = shell.execute_function(&function.clone(), &["ion", &i.to_string()]) {
+//!         if let Some(Value::Function(function)) = {
+//!             shell.variables().get_func("on_update").cloned()
+//!         } {
+//!             if let Err(why) = shell.execute_function(&function, &["ion", &i.to_string()]) {
 //!                 println!("ERROR: my-application: error in on_update callback: {}", why);
 //!             }
 //!         }

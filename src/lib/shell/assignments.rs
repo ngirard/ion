@@ -148,7 +148,9 @@ impl<'b> Shell<'b> {
                     let lhs = self.variables.get(key.name).ok_or_else(|| {
                         format!("cannot update non existing variable `{}`", key.name)
                     })?;
-                    let val = apply(operator, lhs, rhs).map_err(|_| {
+
+                    // TODO: Prevent lhs allocation.
+                    let val = apply(operator, &lhs.to_owned(), rhs).map_err(|_| {
                         format!(
                             "type error: variable `{}` of type `{}` does not support operator",
                             key.name, key.kind

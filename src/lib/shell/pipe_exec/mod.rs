@@ -16,7 +16,7 @@ use self::{job_control::ProcessState, pipes::TeePipe};
 use super::{
     job::{RefinedJob, TeeItem, Variant},
     signals::{self, SignalHandler},
-    IonError, Shell, Value,
+    IonError, Shell,
 };
 use crate::{
     builtins::Status,
@@ -337,7 +337,7 @@ impl<'b> Shell<'b> {
     }
 
     fn exec_function<S: AsRef<str>>(&mut self, name: &str, args: &[S]) -> Result<Status, IonError> {
-        if let Some(Value::Function(function)) = self.variables.get(name).cloned() {
+        if let Some(function) = self.variables.get_func(name).cloned() {
             function.execute(self, args).map(|_| self.previous_status)
         } else {
             unreachable!()

@@ -27,7 +27,7 @@ pub use self::{
         job_control::{BackgroundEvent, BackgroundProcess},
         PipelineError,
     },
-    variables::Value,
+    variables::{Value, ValueRef, ValueRefMut},
 };
 use crate::{
     assignments::value_check,
@@ -116,11 +116,11 @@ pub struct Shell<'a> {
     /// started.
     builtins: BuiltinMap<'a>,
     /// Contains the aliases, strings, and array variable maps.
-    variables: Variables<'a>,
+    pub(crate) variables: Variables<'a>,
     /// Contains the current state of flow control parameters.
     flow_control: Block<'a>,
     /// Contains the directory stack parameters.
-    directory_stack: DirectoryStack,
+    pub(crate) directory_stack: DirectoryStack,
     /// When a command is executed, the final result of that command is stored
     /// here.
     previous_status: Status,
@@ -329,10 +329,11 @@ impl<'a> Shell<'a> {
             self.execute_pipeline(pipeline).map_err(Into::into)
         } else if let Some(main) = self.builtins.get(pipeline.items[0].command()) {
             Ok(main(&pipeline.items[0].job.args, self))
-        } else if let Some(Value::Function(function)) =
-            self.variables.get(&pipeline.items[0].job.args[0]).cloned()
-        {
-            function.execute(self, &pipeline.items[0].job.args).map(|_| self.previous_status)
+        } else if let Some(function) = self.variables.get_func(&pipeline.items[0].job.args[0]) {
+            function
+                .clone()
+                .execute(self, &pipeline.items[0].job.args)
+                .map(|_| self.previous_status)
         } else {
             self.execute_pipeline(pipeline).map_err(Into::into)
         }?;
@@ -440,15 +441,15 @@ impl<'a> Shell<'a> {
                             .ok_or_else(|| "index value does not exist".to_string())?;
 
                         match lhs {
-                            Value::HashMap(hmap) => {
+                            ValueRefMut::HashMap(hmap) => {
                                 let _ = hmap.insert(index, value);
                                 Ok(())
                             }
-                            Value::BTreeMap(bmap) => {
+                            ValueRefMut::BTreeMap(bmap) => {
                                 let _ = bmap.insert(index, value);
                                 Ok(())
                             }
-                            Value::Array(array) => {
+                            ValueRefMut::Array(array) => {
                                 let index_num = index.parse::<usize>().map_err(|_| {
                                     format!("index variable is not a numeric value: `{}`", index)
                                 })?;

@@ -55,6 +55,8 @@ impl<K: Hash + Eq, V: Clone> Scopes<K, V> {
         }
     }
 
+    pub fn current_scope(&self) -> &Scope<K, V> { &self.scopes[self.current] }
+
     pub fn pop_scope(&mut self) {
         self.scopes[self.current].clear();
         self.current -= 1;
